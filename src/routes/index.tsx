@@ -1,26 +1,43 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { FocusProvider } from "@/components/focus/FocusProvider";
+import { StatusBar } from "@/components/home/StatusBar";
+import { AppGrid } from "@/components/home/AppGrid";
+import { Dock } from "@/components/home/Dock";
+import { ImportDialog } from "@/components/home/ImportDialog";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "iiSU — Retro Game Launcher" },
+      {
+        name: "description",
+        content:
+          "A retro-game launcher inspired by the iiSU Wii U front-end: glassy tiles, focus-driven navigation, gamepad support.",
+      },
+      { property: "og:title", content: "iiSU — Retro Game Launcher" },
+      {
+        property: "og:description",
+        content:
+          "Browse your imported retro library on a focus-first home screen with light and dark glass themes.",
+      },
+    ],
+  }),
+  component: Home,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
+function Home() {
+  const [importOpen, setImportOpen] = useState(false);
 
-function Index() {
-  return <PlaceholderIndex />;
+  return (
+    <FocusProvider>
+      <h1 className="sr-only">iiSU Home</h1>
+      <div className="flex h-screen w-screen flex-col">
+        <StatusBar />
+        <AppGrid onOpenImport={() => setImportOpen(true)} />
+        <Dock onEdit={() => setImportOpen(true)} />
+      </div>
+      <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
+    </FocusProvider>
+  );
 }
