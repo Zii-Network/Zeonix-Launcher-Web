@@ -32,10 +32,6 @@ function DockIcon({
   id: string; Icon: typeof Gamepad2; label: string; col: number; onSelect?: () => void;
 }) {
   const { isFocused, focus } = useFocusable({ id, zone: "dock", row: 0, col, onSelect });
-  return _DockBtn({ Icon, label, isFocused, onClick: () => { focus(); onSelect?.(); }, onMouseEnter: focus });
-}
-
-function _DockBtn({ Icon, label, isFocused, onClick, onMouseEnter }: { Icon: typeof Gamepad2; label: string; isFocused: boolean; onClick: () => void; onMouseEnter: () => void }) {
   return (
     <motion.button
       type="button"
