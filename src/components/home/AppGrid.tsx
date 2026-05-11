@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { Plus, Trophy, Settings, Gift } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { AppTile, type AppTileData, PlaceholderTile } from "./AppTile";
 import { FeaturedCard } from "./FeaturedCard";
 import { useLibraryStore } from "@/stores/library";
@@ -29,6 +30,7 @@ export function AppGrid({ onOpenImport }: { onOpenImport: () => void }) {
   const games = useLibraryStore((s) => s.games);
   const load = useLibraryStore((s) => s.load);
   const loaded = useLibraryStore((s) => s.loaded);
+  const navigate = useNavigate();
 
   useEffect(() => {
     void load();
@@ -57,9 +59,10 @@ export function AppGrid({ onOpenImport }: { onOpenImport: () => void }) {
         id: "sys-settings",
         title: "Settings",
         icon: <Settings className="h-7 w-7 text-foreground/70" />,
+        onSelect: () => navigate({ to: "/profile" }),
       },
     ],
-    [onOpenImport],
+    [onOpenImport, navigate],
   );
 
   const gameTiles: AppTileData[] = games.map((g) => ({
