@@ -5,8 +5,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 
 function useNow() {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
+    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 1000 * 30);
     return () => clearInterval(id);
   }, []);
@@ -34,12 +35,12 @@ export function StatusBar() {
     onSelect: goProfile,
   });
 
-  const time = now.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-  const date = now.toLocaleDateString([], { month: "2-digit", day: "2-digit" });
+  const time = now
+    ? now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
+    : "--:--";
+  const date = now
+    ? now.toLocaleDateString([], { month: "2-digit", day: "2-digit" })
+    : "--/--";
 
   return (
     <div className="flex items-center justify-between gap-4 px-4 pt-3">
