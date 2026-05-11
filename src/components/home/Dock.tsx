@@ -14,8 +14,8 @@ import {
 import { useFocusable } from "@/components/focus/FocusProvider";
 import { useNavigate } from "@tanstack/react-router";
 
-const ICONS = [
-  { id: "dock-games", icon: Gamepad2, label: "Games" },
+const ICONS: { id: string; icon: typeof Gamepad2; label: string; to?: string }[] = [
+  { id: "dock-games", icon: Gamepad2, label: "Games", to: "/games" },
   { id: "dock-trophies", icon: Trophy, label: "Achievements" },
   { id: "dock-camera", icon: Camera, label: "Screenshots" },
   { id: "dock-music", icon: Music, label: "Music" },
@@ -32,6 +32,10 @@ function DockIcon({
   id: string; Icon: typeof Gamepad2; label: string; col: number; onSelect?: () => void;
 }) {
   const { isFocused, focus } = useFocusable({ id, zone: "dock", row: 0, col, onSelect });
+  return _DockBtn({ Icon, label, isFocused, onClick: () => { focus(); onSelect?.(); }, onMouseEnter: focus });
+}
+
+function _DockBtn({ Icon, label, isFocused, onClick, onMouseEnter }: { Icon: typeof Gamepad2; label: string; isFocused: boolean; onClick: () => void; onMouseEnter: () => void }) {
   return (
     <motion.button
       type="button"
@@ -79,7 +83,14 @@ export function Dock({ onEdit }: { onEdit: () => void }) {
 
       <div className="glass flex items-center gap-1 rounded-2xl px-4 py-2">
         {ICONS.map((it, i) => (
-          <DockIcon key={it.id} id={it.id} Icon={it.icon} label={it.label} col={i} />
+          <DockIcon
+            key={it.id}
+            id={it.id}
+            Icon={it.icon}
+            label={it.label}
+            col={i}
+            onSelect={it.to ? () => navigate({ to: it.to! }) : undefined}
+          />
         ))}
       </div>
 
