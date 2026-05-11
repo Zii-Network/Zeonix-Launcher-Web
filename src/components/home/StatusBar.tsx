@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Battery, Clock } from "lucide-react";
 import { useFocusable } from "@/components/focus/FocusProvider";
-import { useUIStore } from "@/stores/ui";
+import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 
 function useNow() {
@@ -17,8 +17,8 @@ const friends = ["🦊", "🐼", "🐰", "🐧", "🐸"];
 
 export function StatusBar() {
   const now = useNow();
-  const toggleTheme = useUIStore((s) => s.toggleTheme);
-  const theme = useUIStore((s) => s.theme);
+  const navigate = useNavigate();
+  const goProfile = () => navigate({ to: "/profile" });
 
   const friendsFocus = useFocusable({
     id: "status-friends",
@@ -31,7 +31,7 @@ export function StatusBar() {
     zone: "status",
     row: 0,
     col: 10,
-    onSelect: toggleTheme,
+    onSelect: goProfile,
   });
 
   const time = now.toLocaleTimeString([], {
@@ -77,11 +77,10 @@ export function StatusBar() {
 
         <motion.button
           type="button"
-          onClick={profileFocus.focus}
-          onDoubleClick={toggleTheme}
+          onClick={() => { profileFocus.focus(); goProfile(); }}
           animate={{ scale: profileFocus.isFocused ? 1.1 : 1 }}
-          aria-label="Toggle theme"
-          title={`Theme: ${theme} (Enter to toggle)`}
+          aria-label="Open profile"
+          title="Open profile & settings"
           className={`grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground tile-shadow ${
             profileFocus.isFocused ? "focus-glow" : ""
           }`}

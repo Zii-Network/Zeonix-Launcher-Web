@@ -12,8 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { useFocusable } from "@/components/focus/FocusProvider";
-import { useUIStore } from "@/stores/ui";
-import { Sun, Moon } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 
 const ICONS = [
   { id: "dock-games", icon: Gamepad2, label: "Games" },
@@ -25,29 +24,14 @@ const ICONS = [
   { id: "dock-mii", icon: Users, label: "Avatars" },
   { id: "dock-chat", icon: MessageCircle, label: "Chat" },
   { id: "dock-apps", icon: Grid3x3, label: "All apps" },
-  { id: "dock-settings", icon: Settings, label: "Settings" },
 ];
 
 function DockIcon({
-  id,
-  Icon,
-  label,
-  col,
-  onSelect,
+  id, Icon, label, col, onSelect,
 }: {
-  id: string;
-  Icon: typeof Gamepad2;
-  label: string;
-  col: number;
-  onSelect?: () => void;
+  id: string; Icon: typeof Gamepad2; label: string; col: number; onSelect?: () => void;
 }) {
-  const { isFocused, focus } = useFocusable({
-    id,
-    zone: "dock",
-    row: 0,
-    col,
-    onSelect,
-  });
+  const { isFocused, focus } = useFocusable({ id, zone: "dock", row: 0, col, onSelect });
   return (
     <motion.button
       type="button"
@@ -67,23 +51,14 @@ function DockIcon({
 }
 
 export function Dock({ onEdit }: { onEdit: () => void }) {
-  const toggleTheme = useUIStore((s) => s.toggleTheme);
-  const theme = useUIStore((s) => s.theme);
+  const navigate = useNavigate();
 
   const editFocus = useFocusable({
-    id: "dock-edit",
-    zone: "dock",
-    row: 0,
-    col: -1,
-    onSelect: onEdit,
+    id: "dock-edit", zone: "dock", row: 0, col: -1, onSelect: onEdit,
   });
-
-  const themeFocus = useFocusable({
-    id: "dock-theme",
-    zone: "dock",
-    row: 0,
-    col: 100,
-    onSelect: toggleTheme,
+  const settingsFocus = useFocusable({
+    id: "dock-settings", zone: "dock", row: 0, col: 100,
+    onSelect: () => navigate({ to: "/profile" }),
   });
 
   return (
@@ -104,41 +79,22 @@ export function Dock({ onEdit }: { onEdit: () => void }) {
 
       <div className="glass flex items-center gap-1 rounded-2xl px-4 py-2">
         {ICONS.map((it, i) => (
-          <DockIcon
-            key={it.id}
-            id={it.id}
-            Icon={it.icon}
-            label={it.label}
-            col={i}
-          />
+          <DockIcon key={it.id} id={it.id} Icon={it.icon} label={it.label} col={i} />
         ))}
       </div>
 
       <motion.button
         type="button"
-        onClick={() => { themeFocus.focus(); toggleTheme(); }}
-        animate={{ scale: themeFocus.isFocused ? 1.05 : 1 }}
-        aria-label="Toggle theme"
-        className={`glass flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-semibold ${
-          themeFocus.isFocused ? "focus-glow" : ""
+        onClick={() => { settingsFocus.focus(); navigate({ to: "/profile" }); }}
+        animate={{ scale: settingsFocus.isFocused ? 1.05 : 1 }}
+        aria-label="Open profile & settings"
+        title="Profile & Settings"
+        className={`glass flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold ${
+          settingsFocus.isFocused ? "focus-glow" : ""
         }`}
       >
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-1">
-            <span className="grid h-4 w-4 place-items-center rounded-full bg-foreground text-background text-[9px]">
-              A
-            </span>
-            <span>Select</span>
-          </div>
-          <div className="flex items-center gap-1">
-            {theme === "dark" ? (
-              <Moon className="h-3 w-3" />
-            ) : (
-              <Sun className="h-3 w-3" />
-            )}
-            <span>Theme</span>
-          </div>
-        </div>
+        <Settings className="h-4 w-4" />
+        Settings
       </motion.button>
     </div>
   );
