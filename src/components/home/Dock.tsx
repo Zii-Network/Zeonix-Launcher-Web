@@ -2,34 +2,27 @@ import { motion } from "framer-motion";
 import {
   Gamepad2,
   Trophy,
-  Camera,
-  Music,
-  Film,
-  Smile,
-  MessageCircle,
+  Users,
   Grid3x3,
   Settings,
-  Users,
+  Home,
 } from "lucide-react";
 import { useFocusable } from "@/components/focus/FocusProvider";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 
-const ICONS: { id: string; icon: typeof Gamepad2; label: string; to?: string }[] = [
+const ICONS: { id: string; icon: typeof Gamepad2; label: string; to: string }[] = [
+  { id: "dock-home", icon: Home, label: "Home", to: "/" },
   { id: "dock-games", icon: Gamepad2, label: "Games", to: "/games" },
-  { id: "dock-trophies", icon: Trophy, label: "Achievements" },
-  { id: "dock-camera", icon: Camera, label: "Screenshots" },
-  { id: "dock-music", icon: Music, label: "Music" },
-  { id: "dock-video", icon: Film, label: "Video" },
-  { id: "dock-emoji", icon: Smile, label: "Friends" },
-  { id: "dock-mii", icon: Users, label: "Avatars" },
-  { id: "dock-chat", icon: MessageCircle, label: "Chat" },
-  { id: "dock-apps", icon: Grid3x3, label: "All apps" },
+  { id: "dock-trophies", icon: Trophy, label: "Achievements", to: "/achievements" },
+  { id: "dock-friends", icon: Users, label: "Friends", to: "/friends" },
+  { id: "dock-apps", icon: Grid3x3, label: "All apps", to: "/apps" },
 ];
 
 function DockIcon({
-  id, Icon, label, col, onSelect,
+  id, Icon, label, col, onSelect, isActive,
 }: {
-  id: string; Icon: typeof Gamepad2; label: string; col: number; onSelect?: () => void;
+  id: string; Icon: typeof Gamepad2; label: string; col: number;
+  onSelect?: () => void; isActive?: boolean;
 }) {
   const { isFocused, focus } = useFocusable({ id, zone: "dock", row: 0, col, onSelect });
   return (
@@ -37,21 +30,30 @@ function DockIcon({
       type="button"
       onClick={() => { focus(); onSelect?.(); }}
       onMouseEnter={focus}
-      animate={{ scale: isFocused ? 1.25 : 1, y: isFocused ? -4 : 0 }}
+      animate={{ scale: isFocused ? 1.25 : isActive ? 1.1 : 1, y: isFocused ? -4 : 0 }}
       transition={{ type: "spring", stiffness: 320, damping: 20 }}
       aria-label={label}
       title={label}
-      className={`grid h-10 w-10 place-items-center rounded-xl text-foreground/70 ${
-        isFocused ? "focus-glow text-primary" : ""
+      aria-current={isActive ? "page" : undefined}
+      className={`relative grid h-10 w-10 place-items-center rounded-xl ${
+        isFocused
+          ? "focus-glow text-primary"
+          : isActive
+            ? "bg-primary/15 text-primary"
+            : "text-foreground/70"
       }`}
     >
       <Icon className="h-5 w-5" />
+      {isActive ? (
+        <span className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary" />
+      ) : null}
     </motion.button>
   );
 }
 
 export function Dock({ onEdit }: { onEdit: () => void }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const editFocus = useFocusable({
     id: "dock-edit", zone: "dock", row: 0, col: -1, onSelect: onEdit,
@@ -85,7 +87,8 @@ export function Dock({ onEdit }: { onEdit: () => void }) {
             Icon={it.icon}
             label={it.label}
             col={i}
-            onSelect={it.to ? () => navigate({ to: it.to! }) : undefined}
+            isActive={location.pathname === it.to}
+            onSelect={() => navigate({ to: it.to })}
           />
         ))}
       </div>
