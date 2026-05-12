@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
+import { ChevronUp, ChevronDown, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFocusable, useFocusContext } from "@/components/focus/FocusProvider";
 import type { ConsoleEntry, RomEntry } from "@/stores/consoles";
@@ -24,7 +24,7 @@ export function GameList({
 
   return (
     <div className="relative h-full w-full">
-      {/* Back chip — selected console icon center-left */}
+      {/* Back chip — selected console icon top-left */}
       <ConsoleBackChip entry={con} onBack={onBack} />
 
       {items.length === 0 ? (
@@ -35,17 +35,17 @@ export function GameList({
             type="button"
             aria-label="Previous"
             onClick={() => setActive(clamp(active - 1))}
-            className="absolute left-[280px] top-1/2 z-20 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full glass"
+            className="absolute left-1/2 top-3 z-20 -translate-x-1/2 grid h-9 w-9 place-items-center rounded-full glass"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronUp className="h-5 w-5" />
           </button>
           <button
             type="button"
             aria-label="Next"
             onClick={() => setActive(clamp(active + 1))}
-            className="absolute right-2 top-1/2 z-20 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full glass"
+            className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 grid h-9 w-9 place-items-center rounded-full glass"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronDown className="h-5 w-5" />
           </button>
 
           <div className="absolute inset-0">
@@ -76,8 +76,8 @@ function ConsoleBackChip({
   const { isFocused } = useFocusable({
     id: "game-back",
     zone: "grid",
-    row: 1,
-    col: 0,
+    row: 0,
+    col: 1,
     onSelect: onBack,
   });
   return (
@@ -87,14 +87,14 @@ function ConsoleBackChip({
       onClick={onBack}
       animate={{ scale: isFocused ? 1.05 : 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 24 }}
-      className={`absolute left-6 top-1/2 z-30 -translate-y-1/2 grid h-[170px] w-[170px] place-items-center overflow-hidden rounded-[1.5rem] tile-shadow text-white ${
+      className={`absolute left-6 top-6 z-30 grid h-[140px] w-[140px] place-items-center overflow-hidden rounded-[1.5rem] tile-shadow text-white ${
         isFocused ? "focus-glow" : ""
       }`}
       style={{ background: entry.accent }}
       aria-label="Back to consoles"
       title="Back to consoles"
     >
-      <div className="text-[5rem] drop-shadow-xl">{entry.emoji}</div>
+      <div className="text-[4rem] drop-shadow-xl">{entry.emoji}</div>
       <div className="absolute left-2 top-2 rounded-full bg-black/30 px-2 py-1 text-[10px] font-bold">
         <ArrowLeft className="inline h-3 w-3" /> Back
       </div>
@@ -104,10 +104,10 @@ function ConsoleBackChip({
 
 function slideStyle(offset: number) {
   const abs = Math.abs(offset);
-  const x = 220 + offset * 280; // shift right of the back chip
+  const y = offset * 240;
   const scale = abs === 0 ? 1 : abs === 1 ? 0.72 : 0.5;
   const opacity = abs === 0 ? 1 : abs === 1 ? 0.55 : 0.15;
-  return { x, scale, opacity, zIndex: 10 - abs };
+  return { y, scale, opacity, zIndex: 10 - abs };
 }
 
 function GameSlide({
@@ -126,15 +126,15 @@ function GameSlide({
   const { isFocused } = useFocusable({
     id: `game-${rom.id}`,
     zone: "grid",
-    row: 1,
-    col: offset + 200,
+    row: offset + 200,
+    col: 2,
     onSelect: onActivate,
   });
   if (Math.abs(offset) > 2) return null;
 
   return (
     <motion.div
-      className="absolute left-1/2 top-1/2 -translate-y-1/2"
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-8"
       initial={false}
       animate={slideStyle(offset)}
       transition={{ type: "spring", stiffness: 220, damping: 26 }}
@@ -143,7 +143,7 @@ function GameSlide({
         type="button"
         onClick={onActivate}
         onMouseEnter={onActivate}
-        className={`relative grid h-[260px] w-[260px] place-items-center overflow-hidden rounded-[1.75rem] tile-shadow text-white text-left ${
+        className={`relative grid h-[220px] w-[220px] place-items-center overflow-hidden rounded-[1.75rem] tile-shadow text-white text-left ${
           isActive && isFocused ? "focus-glow" : ""
         }`}
         style={{
@@ -162,7 +162,7 @@ function GameSlide({
         </div>
       </button>
       {isActive ? (
-        <div className="absolute left-[280px] top-1/2 w-[420px] -translate-y-1/2 text-foreground">
+        <div className="w-[420px] text-foreground text-left">
           <div className="text-3xl font-extrabold uppercase tracking-wide drop-shadow">
             {rom.title}
           </div>
