@@ -168,32 +168,34 @@ function AddSlide({
 
   return (
     <motion.div
-      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-8"
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
       initial={false}
       animate={slideStyle(offset)}
       transition={{ type: "spring", stiffness: 220, damping: 26 }}
     >
-      <button
-        type="button"
-        onClick={isActive ? onSelect : onActivate}
-        onMouseEnter={onActivate}
-        className={`relative grid h-[260px] w-[260px] place-items-center overflow-hidden rounded-[2rem] border-2 border-dashed border-foreground/30 bg-foreground/5 text-foreground/70 ${
-          isActive && isFocused ? "focus-glow" : ""
-        }`}
-      >
-        <div className="grid place-items-center gap-2">
-          <Plus className="h-16 w-16" />
-          <div className="text-sm font-semibold">Add console</div>
-        </div>
-      </button>
-      {isActive ? (
-        <div className="text-left">
-          <div className="text-3xl font-bold tracking-wide">New console</div>
-          <div className="mt-2 text-xs text-muted-foreground">
-            Pick a platform and scan ROMs
+      <div className="relative">
+        <button
+          type="button"
+          onClick={isActive ? onSelect : onActivate}
+          onMouseEnter={onActivate}
+          className={`relative grid h-[260px] w-[260px] flex-shrink-0 place-items-center overflow-hidden rounded-[2rem] border-2 border-dashed border-foreground/30 bg-foreground/5 text-foreground/70 ${
+            isActive && isFocused ? "focus-glow" : ""
+          }`}
+        >
+          <div className="grid place-items-center gap-2">
+            <Plus className="h-16 w-16" />
+            <div className="text-sm font-semibold">Add console</div>
           </div>
-        </div>
-      ) : null}
+        </button>
+        {isActive ? (
+          <div className="absolute left-full top-1/2 ml-8 w-[360px] -translate-y-1/2 text-left">
+            <div className="text-3xl font-bold tracking-wide">New console</div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              Pick a platform and scan ROMs
+            </div>
+          </div>
+        ) : null}
+      </div>
     </motion.div>
   );
 }
