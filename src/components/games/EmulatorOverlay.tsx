@@ -1,12 +1,11 @@
-import { motion } from "framer-motion";
-import { X, Upload } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Power, Minimize2, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { RomEntry } from "@/stores/consoles";
 import { coreForFile } from "@/lib/emulator-cores";
+import { useEmulatorSession } from "@/stores/emulator-session";
 
 // EmulatorJS is loaded from CDN at launch — it bundles RetroArch cores as WASM.
-// See https://emulatorjs.org/docs/getting-started
-
 const EJS_VERSION = "stable";
 const EJS_BASE = `https://cdn.emulatorjs.org/${EJS_VERSION}/data/`;
 
@@ -22,12 +21,53 @@ declare global {
   }
 }
 
-export function EmulatorOverlay({
+/**
+ * Mounted once at the app root. While `rom` is set, the emulator stays alive —
+ * minimizing only hides the overlay so background audio / state continue.
+ * Terminate fully tears down the EJS instance.
+ */
+export function EmulatorRoot() {
+  const rom = useEmulatorSession((s) => s.rom);
+  const visible = useEmulatorSession((s) => s.visible);
+  const minimize = useEmulatorSession((s) => s.minimize);
+  const terminate = useEmulatorSession((s) => s.terminate);
+
+  // Esc minimizes (does not terminate)
+  useEffect(() => {
+    if (!rom || !visible) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        e.preventDefault();
+        minimize();
+      }
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [rom, visible, minimize]);
+
+  if (!rom) return null;
+
+  return (
+    <EmulatorSurface
+      rom={rom}
+      visible={visible}
+      onMinimize={minimize}
+      onTerminate={terminate}
+    />
+  );
+}
+
+function EmulatorSurface({
   rom,
-  onClose,
+  visible,
+  onMinimize,
+  onTerminate,
 }: {
   rom: RomEntry;
-  onClose: () => void;
+  visible: boolean;
+  onMinimize: () => void;
+  onTerminate: () => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,14 +76,13 @@ export function EmulatorOverlay({
 
   const mapping = coreForFile(rom.fileName);
 
-  // Launch EmulatorJS once we have a file + container
+  // Boot EJS once the user has provided a file.
   useEffect(() => {
     if (!file || !mapping || !containerRef.current) return;
 
     const url = URL.createObjectURL(file);
     blobUrlRef.current = url;
 
-    // Configure EmulatorJS via globals
     window.EJS_player = "#emu-game";
     window.EJS_gameUrl = url;
     window.EJS_core = mapping.core;
@@ -59,9 +98,7 @@ export function EmulatorOverlay({
     return () => {
       try {
         window.EJS_emulator?.exit?.();
-      } catch {
-        /* noop */
-      }
+      } catch { /* noop */ }
       window.EJS_emulator = null;
       script.remove();
       if (blobUrlRef.current) {
@@ -69,59 +106,77 @@ export function EmulatorOverlay({
         blobUrlRef.current = null;
       }
     };
-  }, [file, mapping, rom.title]);
-
-  // Esc closes the overlay (don't pass through to EJS)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.stopPropagation();
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", onKey, true);
-    return () => window.removeEventListener("keydown", onKey, true);
-  }, [onClose]);
+    // Tear-down only on rom change / unmount — never on visibility.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file, rom.id]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[100] grid place-items-center bg-black/95 backdrop-blur"
-    >
-      <button
-        type="button"
-        onClick={onClose}
-        className="absolute right-4 top-4 z-10 grid h-10 w-10 place-items-center rounded-full glass text-foreground/80 hover:text-foreground"
-        aria-label="Close emulator"
-      >
-        <X className="h-5 w-5" />
-      </button>
+    <AnimatePresence>
+      {visible ? (
+        <motion.div
+          key="emu-shade"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          className="fixed inset-0 z-[90] bg-black/95 backdrop-blur"
+        />
+      ) : null}
 
-      {!mapping ? (
-        <div className="text-center text-foreground">
-          <div className="text-xl font-bold">Unsupported file type</div>
-          <div className="mt-2 text-sm text-muted-foreground">
-            No core available for .{rom.ext}
-          </div>
+      {/* Surface stays mounted whether visible or minimized. */}
+      <motion.div
+        key="emu-surface"
+        initial={false}
+        animate={
+          visible
+            ? { opacity: 1, scale: 1, y: 0, pointerEvents: "auto" }
+            : { opacity: 0, scale: 0.2, y: 320, pointerEvents: "none" }
+        }
+        transition={{ type: "spring", stiffness: 240, damping: 28 }}
+        className="fixed inset-0 z-[100] grid place-items-center"
+        style={{ visibility: visible ? "visible" : "hidden" }}
+      >
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onMinimize}
+            className="glass focus-glow flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold text-foreground/90"
+            aria-label="Hide emulator (keep running)"
+            title="Hide — keep running in background"
+          >
+            <Minimize2 className="h-4 w-4" />
+            Hide
+          </button>
+          <button
+            type="button"
+            onClick={onTerminate}
+            className="flex items-center gap-2 rounded-2xl bg-destructive px-3 py-2 text-xs font-semibold text-destructive-foreground"
+            aria-label="Terminate emulator"
+            title="Terminate — fully close the game"
+          >
+            <Power className="h-4 w-4" />
+            Terminate
+          </button>
         </div>
-      ) : !file ? (
-        <FilePicker
-          rom={rom}
-          onPick={setFile}
-          error={error}
-          setError={setError}
-        />
-      ) : (
-        <div
-          ref={containerRef}
-          id="emu-game"
-          className="h-[min(90vh,720px)] w-[min(95vw,1280px)] overflow-hidden rounded-2xl bg-black tile-shadow"
-        />
-      )}
-    </motion.div>
+
+        {!mapping ? (
+          <div className="text-center text-foreground">
+            <div className="text-xl font-bold">Unsupported file type</div>
+            <div className="mt-2 text-sm text-muted-foreground">
+              No core available for .{rom.ext}
+            </div>
+          </div>
+        ) : !file ? (
+          <FilePicker rom={rom} onPick={setFile} error={error} setError={setError} />
+        ) : (
+          <div
+            ref={containerRef}
+            id="emu-game"
+            className="h-[min(90vh,720px)] w-[min(95vw,1280px)] overflow-hidden rounded-2xl bg-black tile-shadow"
+          />
+        )}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -140,9 +195,7 @@ function FilePicker({
   return (
     <div className="grid place-items-center gap-4 text-center text-foreground">
       <div>
-        <div className="text-xs uppercase tracking-widest text-muted-foreground">
-          Launching
-        </div>
+        <div className="text-xs uppercase tracking-widest text-muted-foreground">Launching</div>
         <div className="mt-1 text-3xl font-extrabold">{rom.title}</div>
         <div className="mt-1 text-xs text-muted-foreground">{rom.fileName}</div>
       </div>
@@ -156,8 +209,7 @@ function FilePicker({
       </button>
       <p className="max-w-md text-xs text-muted-foreground">
         Browsers can't open local files automatically — pick{" "}
-        <span className="font-mono">{rom.fileName}</span> to boot it in
-        RetroArch.
+        <span className="font-mono">{rom.fileName}</span> to boot it in RetroArch.
       </p>
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
       <input
