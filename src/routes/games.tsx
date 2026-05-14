@@ -45,12 +45,14 @@ function GamesShell() {
   const [addOpen, setAddOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [selected, setSelected] = useState<ConsoleEntry | null>(null);
+  const [launching, setLaunching] = useState<RomEntry | null>(null);
 
   useEffect(() => { void load(); }, [load]);
 
-  // Back: in game list, go to console list. In console list, go to /
+  // Back: in emulator → close it. In game list → consoles. In consoles → /
   useBack(() => {
-    if (selected) setSelected(null);
+    if (launching) setLaunching(null);
+    else if (selected) setSelected(null);
     else navigate({ to: "/" });
   });
 
@@ -71,7 +73,11 @@ function GamesShell() {
               transition={{ type: "spring", stiffness: 240, damping: 28 }}
               className="absolute inset-0"
             >
-              <GameList console={selected} onBack={() => setSelected(null)} />
+              <GameList
+                console={selected}
+                onBack={() => setSelected(null)}
+                onLaunch={(rom) => setLaunching(rom)}
+              />
             </motion.div>
           ) : (
             <motion.div
@@ -95,6 +101,16 @@ function GamesShell() {
       )}
 
       <AddConsoleDialog open={addOpen} onClose={() => setAddOpen(false)} />
+
+      <AnimatePresence>
+        {launching ? (
+          <EmulatorOverlay
+            key={launching.id}
+            rom={launching}
+            onClose={() => setLaunching(null)}
+          />
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
