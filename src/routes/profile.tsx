@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Palette, Database, Volume2, Info, Trash2, Sun, Moon, Monitor } from "lucide-react";
 import { FocusProvider, useBack, useFocusable } from "@/components/focus/FocusProvider";
-import { useUIStore } from "@/stores/ui";
+import { useUIStore, ACCENT_PRESETS } from "@/stores/ui";
 import { useLibraryStore } from "@/stores/library";
 
 const SECTIONS = [
@@ -111,6 +111,8 @@ function PaneTitle({ children }: { children: React.ReactNode }) {
 function ThemePane() {
   const theme = useUIStore((s) => s.theme);
   const setTheme = useUIStore((s) => s.setTheme);
+  const accentHue = useUIStore((s) => s.accentHue);
+  const setAccentHue = useUIStore((s) => s.setAccentHue);
   const options: { id: "light" | "dark"; label: string; Icon: typeof Sun }[] = [
     { id: "light", label: "Light", Icon: Sun },
     { id: "dark", label: "Dark", Icon: Moon },
@@ -140,6 +142,65 @@ function ThemePane() {
           );
         })}
       </div>
+
+      <div className="mt-10">
+        <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Accent color</h3>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Drives focus glow, tile highlights and primary buttons across the launcher.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {ACCENT_PRESETS.map((p, i) => {
+            const active = Math.round(accentHue) === p.hue;
+            const f = useFocusable({
+              id: `accent-${p.id}`,
+              zone: "grid",
+              row: 1,
+              col: i + 1,
+              onSelect: () => setAccentHue(p.hue),
+            });
+            return (
+              <motion.button
+                key={p.id}
+                type="button"
+                onClick={() => { f.focus(); setAccentHue(p.hue); }}
+                onMouseEnter={f.focus}
+                animate={{ scale: f.isFocused ? 1.1 : active ? 1.05 : 1 }}
+                title={p.label}
+                aria-label={p.label}
+                aria-pressed={active}
+                className={`relative h-12 w-12 rounded-full border-2 transition-colors ${
+                  active ? "border-foreground" : "border-transparent"
+                } ${f.isFocused ? "focus-glow" : "tile-shadow"}`}
+                style={{ background: p.swatch }}
+              >
+                {active ? (
+                  <span className="absolute inset-0 grid place-items-center text-white">●</span>
+                ) : null}
+              </motion.button>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 max-w-md">
+          <label className="mb-2 flex justify-between text-sm font-medium">
+            <span>Custom hue</span>
+            <span>{Math.round(accentHue)}°</span>
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={360}
+            value={accentHue}
+            onChange={(e) => setAccentHue(Number(e.target.value))}
+            className="h-3 w-full cursor-pointer appearance-none rounded-full"
+            style={{
+              background:
+                "linear-gradient(to right, oklch(0.72 0.2 0), oklch(0.72 0.2 60), oklch(0.72 0.2 120), oklch(0.72 0.2 180), oklch(0.72 0.2 240), oklch(0.72 0.2 300), oklch(0.72 0.2 360))",
+            }}
+          />
+        </div>
+      </div>
+
       <div className="mt-8 flex items-center gap-2 text-xs text-muted-foreground">
         <Monitor className="h-4 w-4" />
         System preference is detected on first visit.
