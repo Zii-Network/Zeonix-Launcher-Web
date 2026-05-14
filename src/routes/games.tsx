@@ -7,7 +7,8 @@ import { Dock } from "@/components/home/Dock";
 import { ConsoleCarousel } from "@/components/games/ConsoleCarousel";
 import { GameList } from "@/components/games/GameList";
 import { AddConsoleDialog } from "@/components/games/AddConsoleDialog";
-import { useConsolesStore, type ConsoleEntry } from "@/stores/consoles";
+import { EmulatorOverlay } from "@/components/games/EmulatorOverlay";
+import { useConsolesStore, type ConsoleEntry, type RomEntry } from "@/stores/consoles";
 
 export const Route = createFileRoute("/games")({
   head: () => ({
