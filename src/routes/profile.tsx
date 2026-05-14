@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Palette, Database, Volume2, Info, Trash2, Sun, Moon, Monitor } from "lucide-react";
 import { FocusProvider, useBack, useFocusable } from "@/components/focus/FocusProvider";
-import { useUIStore } from "@/stores/ui";
+import { useUIStore, ACCENT_PRESETS } from "@/stores/ui";
 import { useLibraryStore } from "@/stores/library";
 
 const SECTIONS = [
