@@ -7,17 +7,14 @@ import { Dock } from "@/components/home/Dock";
 import { ConsoleCarousel } from "@/components/games/ConsoleCarousel";
 import { GameList } from "@/components/games/GameList";
 import { AddConsoleDialog } from "@/components/games/AddConsoleDialog";
-import { EmulatorOverlay } from "@/components/games/EmulatorOverlay";
-import { useConsolesStore, type ConsoleEntry, type RomEntry } from "@/stores/consoles";
+import { useConsolesStore, type ConsoleEntry } from "@/stores/consoles";
+import { useEmulatorSession } from "@/stores/emulator-session";
 
 export const Route = createFileRoute("/games")({
   head: () => ({
     meta: [
       { title: "Games — iiSU" },
-      {
-        name: "description",
-        content: "Browse your consoles and ROM library in the iiSU launcher.",
-      },
+      { name: "description", content: "Browse your consoles and ROM library in the iiSU launcher." },
     ],
   }),
   component: GamesPage,
@@ -41,17 +38,20 @@ function GamesShell() {
   const consoles = useConsolesStore((s) => s.consoles);
   const load = useConsolesStore((s) => s.load);
   const loaded = useConsolesStore((s) => s.loaded);
+  const launch = useEmulatorSession((s) => s.launch);
+  const sessionVisible = useEmulatorSession((s) => s.visible);
+  const sessionRom = useEmulatorSession((s) => s.rom);
+  const minimize = useEmulatorSession((s) => s.minimize);
 
   const [addOpen, setAddOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [selected, setSelected] = useState<ConsoleEntry | null>(null);
-  const [launching, setLaunching] = useState<RomEntry | null>(null);
 
   useEffect(() => { void load(); }, [load]);
 
-  // Back: in emulator → close it. In game list → consoles. In consoles → /
+  // Back: in active emulator → minimize. In game list → consoles. In consoles → /
   useBack(() => {
-    if (launching) setLaunching(null);
+    if (sessionRom && sessionVisible) minimize();
     else if (selected) setSelected(null);
     else navigate({ to: "/" });
   });
@@ -76,7 +76,7 @@ function GamesShell() {
               <GameList
                 console={selected}
                 onBack={() => setSelected(null)}
-                onLaunch={(rom) => setLaunching(rom)}
+                onLaunch={(rom) => launch(rom)}
               />
             </motion.div>
           ) : (
@@ -101,16 +101,6 @@ function GamesShell() {
       )}
 
       <AddConsoleDialog open={addOpen} onClose={() => setAddOpen(false)} />
-
-      <AnimatePresence>
-        {launching ? (
-          <EmulatorOverlay
-            key={launching.id}
-            rom={launching}
-            onClose={() => setLaunching(null)}
-          />
-        ) : null}
-      </AnimatePresence>
     </div>
   );
 }
