@@ -103,43 +103,45 @@ function ConsoleSlide({
 
   return (
     <motion.div
-      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-8"
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
       initial={false}
       animate={slideStyle(offset)}
       transition={{ type: "spring", stiffness: 220, damping: 26 }}
     >
-      <button
-        type="button"
-        onClick={isActive ? onSelect : onActivate}
-        onMouseEnter={onActivate}
-        className={`relative grid h-[260px] w-[260px] place-items-center overflow-hidden rounded-[2rem] tile-shadow text-white ${
-          isActive && isFocused ? "focus-glow" : ""
-        }`}
-        style={{ background: entry.accent }}
-      >
-        <div className="absolute inset-0 grid place-items-center text-[6rem] drop-shadow-2xl">
-          {entry.emoji}
-        </div>
-        <div className="absolute right-3 top-3 rounded-full glass px-2.5 py-1 text-[10px] font-bold text-foreground">
-          {entry.platform}
-        </div>
-        <div className="absolute bottom-3 left-3 rounded-full glass px-3 py-1 text-[11px] font-semibold text-foreground">
-          {entry.roms.length} game{entry.roms.length === 1 ? "" : "s"}
-        </div>
-      </button>
-      {isActive ? (
-        <div className="text-left">
-          <div className="text-3xl font-bold tracking-wide drop-shadow">
-            {entry.name}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={isActive ? onSelect : onActivate}
+          onMouseEnter={onActivate}
+          className={`relative grid h-[260px] w-[260px] flex-shrink-0 place-items-center overflow-hidden rounded-[2rem] tile-shadow text-white ${
+            isActive && isFocused ? "focus-glow" : ""
+          }`}
+          style={{ background: entry.accent }}
+        >
+          <div className="absolute inset-0 grid place-items-center text-[6rem] drop-shadow-2xl">
+            {entry.emoji}
           </div>
-          <div className="mt-2 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs font-semibold">
-            Total Games:
-            <span className="rounded-full bg-card px-2 py-0.5 text-foreground tile-shadow">
-              {entry.roms.length}
-            </span>
+          <div className="absolute right-3 top-3 rounded-full glass px-2.5 py-1 text-[10px] font-bold text-foreground">
+            {entry.platform}
           </div>
-        </div>
-      ) : null}
+          <div className="absolute bottom-3 left-3 rounded-full glass px-3 py-1 text-[11px] font-semibold text-foreground">
+            {entry.roms.length} game{entry.roms.length === 1 ? "" : "s"}
+          </div>
+        </button>
+        {isActive ? (
+          <div className="absolute left-full top-1/2 ml-8 w-[360px] -translate-y-1/2 text-left">
+            <div className="text-3xl font-bold tracking-wide drop-shadow">
+              {entry.name}
+            </div>
+            <div className="mt-2 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs font-semibold">
+              Total Games:
+              <span className="rounded-full bg-card px-2 py-0.5 text-foreground tile-shadow">
+                {entry.roms.length}
+              </span>
+            </div>
+          </div>
+        ) : null}
+      </div>
     </motion.div>
   );
 }
