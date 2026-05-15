@@ -114,7 +114,7 @@ export function AppGrid({
     bg: PLATFORM_BG[g.platform] ?? "var(--tile)",
   }));
 
-  const tiles = [...systemTiles, ...gameTiles];
+  const tiles = [...systemTiles, ...shortcutTiles, ...gameTiles];
 
   // Layout: 7-col grid, last 2 cols of rows 1-2 reserved for FeaturedCard
   const cells: { row: number; col: number }[] = [];
