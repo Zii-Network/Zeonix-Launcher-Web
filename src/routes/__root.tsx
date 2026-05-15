@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { EmulatorRoot } from "@/components/games/EmulatorOverlay";
+import { FloatingActiveSession } from "@/components/games/FloatingActiveSession";
 
 function NotFoundComponent() {
   return (
