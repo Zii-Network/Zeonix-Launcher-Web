@@ -1,9 +1,10 @@
 import { useEffect, useMemo } from "react";
-import { Plus, Trophy, Settings, Gift } from "lucide-react";
+import { Plus, Trophy, Settings, Gift, Globe } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { AppTile, type AppTileData, PlaceholderTile } from "./AppTile";
 import { FeaturedCard } from "./FeaturedCard";
 import { useLibraryStore } from "@/stores/library";
+import { useShortcutsStore } from "@/stores/shortcuts";
 
 const PLATFORM_BG: Record<string, string> = {
   NES: "linear-gradient(135deg, oklch(0.65 0.22 27), oklch(0.55 0.2 20))",
