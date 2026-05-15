@@ -27,15 +27,24 @@ const PLATFORM_ICON: Record<string, string> = {
   Genesis: "🦔", Other: "🎲",
 };
 
-export function AppGrid({ onOpenImport }: { onOpenImport: () => void }) {
+export function AppGrid({
+  onOpenImport,
+  onOpenShortcut,
+}: {
+  onOpenImport: () => void;
+  onOpenShortcut: () => void;
+}) {
   const games = useLibraryStore((s) => s.games);
   const load = useLibraryStore((s) => s.load);
   const loaded = useLibraryStore((s) => s.loaded);
+  const shortcuts = useShortcutsStore((s) => s.items);
+  const loadShortcuts = useShortcutsStore((s) => s.load);
   const navigate = useNavigate();
 
   useEffect(() => {
     void load();
-  }, [load]);
+    void loadShortcuts();
+  }, [load, loadShortcuts]);
 
   const systemTiles: AppTileData[] = useMemo(
     () => [
