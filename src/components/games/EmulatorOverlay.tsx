@@ -142,21 +142,21 @@ function EmulatorSurface({
             type="button"
             onClick={onMinimize}
             className="glass focus-glow flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold text-foreground/90"
-            aria-label="Hide emulator (keep running)"
-            title="Hide — keep running in background"
+            aria-label="Minimize emulator (keep running)"
+            title="Minimize — keep running in background (Esc)"
           >
             <Minimize2 className="h-4 w-4" />
-            Hide
+            Minimize
           </button>
           <button
             type="button"
             onClick={onTerminate}
             className="flex items-center gap-2 rounded-2xl bg-destructive px-3 py-2 text-xs font-semibold text-destructive-foreground"
-            aria-label="Terminate emulator"
-            title="Terminate — fully close the game"
+            aria-label="Close emulator (terminate)"
+            title="Close — fully terminate the game"
           >
             <Power className="h-4 w-4" />
-            Terminate
+            Close
           </button>
         </div>
 
@@ -173,7 +173,9 @@ function EmulatorSurface({
           <div
             ref={containerRef}
             id="emu-game"
-            className="h-[min(90vh,720px)] w-[min(95vw,1280px)] overflow-hidden rounded-2xl bg-black tile-shadow"
+            tabIndex={-1}
+            autoFocus
+            className="h-[min(90vh,720px)] w-[min(95vw,1280px)] overflow-hidden rounded-2xl bg-black tile-shadow outline-none"
           />
         )}
       </motion.div>
