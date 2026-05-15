@@ -138,6 +138,17 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   // Keyboard
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const sess = useEmulatorSession.getState();
+      const emuActive = !!sess.rom && sess.visible;
+      if (emuActive) {
+        // Esc minimizes; everything else goes to the game.
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          sess.minimize();
+        }
+        return;
+      }
       switch (e.key) {
         case "ArrowUp": e.preventDefault(); move("up"); break;
         case "ArrowDown": e.preventDefault(); move("down"); break;
@@ -147,8 +158,8 @@ export function FocusProvider({ children }: { children: ReactNode }) {
         case "Escape": case "Backspace": e.preventDefault(); back(); break;
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [move, select, back]);
 
   // Gamepad
