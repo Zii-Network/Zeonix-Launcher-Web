@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useEmulatorSession } from "@/stores/emulator-session";
 
 export type Direction = "up" | "down" | "left" | "right";
 
