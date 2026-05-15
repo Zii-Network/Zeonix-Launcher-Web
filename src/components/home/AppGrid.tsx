@@ -56,6 +56,13 @@ export function AppGrid({
         onSelect: onOpenImport,
       },
       {
+        id: "sys-shortcut",
+        title: "Add web shortcut",
+        icon: <Globe className="h-7 w-7 text-white" />,
+        bg: "linear-gradient(135deg, oklch(0.65 0.18 220), oklch(0.55 0.18 250))",
+        onSelect: onOpenShortcut,
+      },
+      {
         id: "sys-achievements",
         title: "Achievements",
         icon: <Trophy className="h-7 w-7 text-amber-500" />,
@@ -72,8 +79,24 @@ export function AppGrid({
         onSelect: () => navigate({ to: "/profile" }),
       },
     ],
-    [onOpenImport, navigate],
+    [onOpenImport, onOpenShortcut, navigate],
   );
+
+  const shortcutTiles: AppTileData[] = shortcuts.map((s) => ({
+    id: `sc-${s.id}`,
+    title: s.title,
+    icon: s.iconDataUrl ? (
+      <img src={s.iconDataUrl} alt={s.title} className="h-full w-full object-cover" />
+    ) : (
+      <Globe className="h-7 w-7 text-white" />
+    ),
+    bg: s.iconDataUrl
+      ? undefined
+      : "linear-gradient(135deg, oklch(0.55 0.15 240), oklch(0.45 0.13 260))",
+    onSelect: () => {
+      try { window.open(s.url, "_blank", "noopener,noreferrer"); } catch { /* noop */ }
+    },
+  }));
 
   const gameTiles: AppTileData[] = games.map((g) => ({
     id: `game-${g.id}`,
