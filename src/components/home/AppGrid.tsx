@@ -1,9 +1,10 @@
 import { useEffect, useMemo } from "react";
-import { Plus, Trophy, Settings, Gift } from "lucide-react";
+import { Plus, Trophy, Settings, Gift, Globe } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { AppTile, type AppTileData, PlaceholderTile } from "./AppTile";
 import { FeaturedCard } from "./FeaturedCard";
 import { useLibraryStore } from "@/stores/library";
+import { useShortcutsStore } from "@/stores/shortcuts";
 
 const PLATFORM_BG: Record<string, string> = {
   NES: "linear-gradient(135deg, oklch(0.65 0.22 27), oklch(0.55 0.2 20))",
@@ -26,15 +27,24 @@ const PLATFORM_ICON: Record<string, string> = {
   Genesis: "🦔", Other: "🎲",
 };
 
-export function AppGrid({ onOpenImport }: { onOpenImport: () => void }) {
+export function AppGrid({
+  onOpenImport,
+  onOpenShortcut,
+}: {
+  onOpenImport: () => void;
+  onOpenShortcut: () => void;
+}) {
   const games = useLibraryStore((s) => s.games);
   const load = useLibraryStore((s) => s.load);
   const loaded = useLibraryStore((s) => s.loaded);
+  const shortcuts = useShortcutsStore((s) => s.items);
+  const loadShortcuts = useShortcutsStore((s) => s.load);
   const navigate = useNavigate();
 
   useEffect(() => {
     void load();
-  }, [load]);
+    void loadShortcuts();
+  }, [load, loadShortcuts]);
 
   const systemTiles: AppTileData[] = useMemo(
     () => [
@@ -44,6 +54,13 @@ export function AppGrid({ onOpenImport }: { onOpenImport: () => void }) {
         icon: <Plus className="h-7 w-7 text-white" />,
         bg: "linear-gradient(135deg, oklch(0.7 0.2 340), oklch(0.7 0.18 290))",
         onSelect: onOpenImport,
+      },
+      {
+        id: "sys-shortcut",
+        title: "Add web shortcut",
+        icon: <Globe className="h-7 w-7 text-white" />,
+        bg: "linear-gradient(135deg, oklch(0.65 0.18 220), oklch(0.55 0.18 250))",
+        onSelect: onOpenShortcut,
       },
       {
         id: "sys-achievements",
@@ -62,8 +79,24 @@ export function AppGrid({ onOpenImport }: { onOpenImport: () => void }) {
         onSelect: () => navigate({ to: "/profile" }),
       },
     ],
-    [onOpenImport, navigate],
+    [onOpenImport, onOpenShortcut, navigate],
   );
+
+  const shortcutTiles: AppTileData[] = shortcuts.map((s) => ({
+    id: `sc-${s.id}`,
+    title: s.title,
+    icon: s.iconDataUrl ? (
+      <img src={s.iconDataUrl} alt={s.title} className="h-full w-full object-cover" />
+    ) : (
+      <Globe className="h-7 w-7 text-white" />
+    ),
+    bg: s.iconDataUrl
+      ? undefined
+      : "linear-gradient(135deg, oklch(0.55 0.15 240), oklch(0.45 0.13 260))",
+    onSelect: () => {
+      try { window.open(s.url, "_blank", "noopener,noreferrer"); } catch { /* noop */ }
+    },
+  }));
 
   const gameTiles: AppTileData[] = games.map((g) => ({
     id: `game-${g.id}`,
@@ -81,7 +114,7 @@ export function AppGrid({ onOpenImport }: { onOpenImport: () => void }) {
     bg: PLATFORM_BG[g.platform] ?? "var(--tile)",
   }));
 
-  const tiles = [...systemTiles, ...gameTiles];
+  const tiles = [...systemTiles, ...shortcutTiles, ...gameTiles];
 
   // Layout: 7-col grid, last 2 cols of rows 1-2 reserved for FeaturedCard
   const cells: { row: number; col: number }[] = [];

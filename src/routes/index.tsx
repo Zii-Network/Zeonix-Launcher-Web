@@ -5,6 +5,7 @@ import { StatusBar } from "@/components/home/StatusBar";
 import { AppGrid } from "@/components/home/AppGrid";
 import { Dock } from "@/components/home/Dock";
 import { ImportDialog } from "@/components/home/ImportDialog";
+import { ShortcutDialog } from "@/components/home/ShortcutDialog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,16 +29,21 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const [importOpen, setImportOpen] = useState(false);
+  const [shortcutOpen, setShortcutOpen] = useState(false);
 
   return (
     <FocusProvider>
       <h1 className="sr-only">iiSU Home</h1>
       <div className="flex h-screen w-screen flex-col">
         <StatusBar />
-        <AppGrid onOpenImport={() => setImportOpen(true)} />
+        <AppGrid
+          onOpenImport={() => setImportOpen(true)}
+          onOpenShortcut={() => setShortcutOpen(true)}
+        />
         <Dock onEdit={() => setImportOpen(true)} />
       </div>
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
+      <ShortcutDialog open={shortcutOpen} onClose={() => setShortcutOpen(false)} />
     </FocusProvider>
   );
 }

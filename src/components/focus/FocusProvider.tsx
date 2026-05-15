@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useEmulatorSession } from "@/stores/emulator-session";
 
 export type Direction = "up" | "down" | "left" | "right";
 
@@ -137,6 +138,17 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   // Keyboard
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const sess = useEmulatorSession.getState();
+      const emuActive = !!sess.rom && sess.visible;
+      if (emuActive) {
+        // Esc minimizes; everything else goes to the game.
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          sess.minimize();
+        }
+        return;
+      }
       switch (e.key) {
         case "ArrowUp": e.preventDefault(); move("up"); break;
         case "ArrowDown": e.preventDefault(); move("down"); break;
@@ -146,8 +158,8 @@ export function FocusProvider({ children }: { children: ReactNode }) {
         case "Escape": case "Backspace": e.preventDefault(); back(); break;
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [move, select, back]);
 
   // Gamepad
@@ -156,6 +168,8 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     let raf = 0;
     const prev = { up: false, down: false, left: false, right: false, a: false, b: false };
     const tick = () => {
+      const sess = useEmulatorSession.getState();
+      const emuActive = !!sess.rom && sess.visible;
       const pads = navigator.getGamepads();
       for (const pad of pads) {
         if (!pad) continue;
@@ -167,6 +181,14 @@ export function FocusProvider({ children }: { children: ReactNode }) {
         const down = pad.buttons[13]?.pressed || ax1 > 0.5;
         const a = pad.buttons[0]?.pressed ?? false;
         const b = pad.buttons[1]?.pressed ?? false;
+        const start = pad.buttons[9]?.pressed ?? false;
+        if (emuActive) {
+          // Let RetroArch read the gamepad directly. Only Start minimizes.
+          if (start && !prev.a) sess.minimize();
+          prev.left = left; prev.right = right; prev.up = up; prev.down = down;
+          prev.a = start; prev.b = b;
+          break;
+        }
         if (left && !prev.left) move("left");
         if (right && !prev.right) move("right");
         if (up && !prev.up) move("up");
