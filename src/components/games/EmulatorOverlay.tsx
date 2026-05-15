@@ -111,6 +111,20 @@ function EmulatorSurface({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file, rom.id]);
 
+  // Auto-focus the emulator container when overlay becomes visible so the
+  // canvas/iframe receives keyboard + gamepad input directly.
+  useEffect(() => {
+    if (!visible) return;
+    const t = setTimeout(() => {
+      const host = containerRef.current;
+      if (!host) return;
+      const target =
+        (host.querySelector("canvas, iframe") as HTMLElement | null) ?? host;
+      try { target.focus({ preventScroll: true }); } catch { /* noop */ }
+    }, 50);
+    return () => clearTimeout(t);
+  }, [visible, file]);
+
   return (
     <AnimatePresence>
       {visible ? (
