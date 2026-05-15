@@ -117,6 +117,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <EmulatorRoot />
+      <FloatingActiveSession />
     </QueryClientProvider>
   );
 }
