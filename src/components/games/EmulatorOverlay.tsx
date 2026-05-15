@@ -32,12 +32,13 @@ export function EmulatorRoot() {
   const minimize = useEmulatorSession((s) => s.minimize);
   const terminate = useEmulatorSession((s) => s.terminate);
 
-  // Esc minimizes (does not terminate)
+  // Esc minimizes (does not terminate). Capture phase + stopImmediate to beat
+  // the FocusProvider listener (which also runs in capture).
   useEffect(() => {
     if (!rom || !visible) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        e.stopPropagation();
+        e.stopImmediatePropagation();
         e.preventDefault();
         minimize();
       }
