@@ -113,7 +113,7 @@ export function AddConsoleDialog({
             </div>
 
             {!platform ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 overflow-y-auto p-1">
                 {PLATFORMS.map((p) => {
                   const preset = PLATFORM_PRESETS[p];
                   return (
@@ -121,15 +121,19 @@ export function AddConsoleDialog({
                       key={p}
                       type="button"
                       onClick={() => setPlatform(p)}
-                      className="relative aspect-square overflow-hidden rounded-2xl tile-shadow text-white text-left p-3 transition hover:scale-[1.03]"
-                      style={{ background: preset.accent }}
+                      className="group relative flex flex-col items-center gap-3 rounded-2xl bg-card p-4 transition-all hover:scale-[1.03] hover:bg-accent focus-glow"
                     >
-                      <div className="absolute inset-0 grid place-items-center text-5xl opacity-90">
-                        {preset.emoji}
+                      <div
+                        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-4xl shadow-lg transition-transform group-hover:scale-110"
+                        style={{ background: preset.accent }}
+                      >
+                        <span className="drop-shadow-sm">{preset.emoji}</span>
                       </div>
-                      <div className="absolute bottom-2 left-3 right-3">
-                        <div className="text-xs font-bold drop-shadow">{p}</div>
-                        <div className="text-[10px] opacity-80 truncate drop-shadow">
+                      <div className="flex flex-col items-center text-center">
+                        <div className="text-xs font-bold text-foreground">
+                          {p}
+                        </div>
+                        <div className="mt-0.5 line-clamp-1 text-[10px] text-muted-foreground">
                           {preset.name}
                         </div>
                       </div>
