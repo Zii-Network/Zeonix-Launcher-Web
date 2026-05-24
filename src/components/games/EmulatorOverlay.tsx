@@ -83,7 +83,26 @@ function EmulatorSurface({
     document.body.appendChild(script);
 
     return () => {
-      // Explicitly cleanup via the store's killer logic
+      // 1. Force-evict iframe context to kill leaky audio/JS loops
+      if (containerRef.current) {
+        const iframe = containerRef.current.querySelector("iframe");
+        if (iframe) {
+          try {
+            iframe.src = "about:blank";
+            const win = iframe.contentWindow;
+            if (win) {
+              win.document.open();
+              win.document.write("");
+              win.document.close();
+            }
+            iframe.remove();
+          } catch (e) {
+            console.error("Failed to safely destroy emulator iframe:", e);
+          }
+        }
+      }
+
+      // 2. Explicitly cleanup via the store's killer logic
       const terminate = useEmulatorSession.getState().terminate;
       terminate();
 
