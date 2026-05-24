@@ -32,21 +32,6 @@ export function EmulatorRoot() {
   const minimize = useEmulatorSession((s) => s.minimize);
   const terminate = useEmulatorSession((s) => s.terminate);
 
-  // Esc minimizes (does not terminate). Capture phase + stopImmediate to beat
-  // the FocusProvider listener (which also runs in capture).
-  useEffect(() => {
-    if (!rom || !visible) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        minimize();
-      }
-    };
-    window.addEventListener("keydown", onKey, true);
-    return () => window.removeEventListener("keydown", onKey, true);
-  }, [rom, visible, minimize]);
-
   if (!rom) return null;
 
   return (
@@ -92,16 +77,20 @@ function EmulatorSurface({
     window.EJS_startOnLoaded = true;
 
     const script = document.createElement("script");
+    script.id = "ejs-loader";
     script.src = `${EJS_BASE}loader.js`;
     script.async = true;
     document.body.appendChild(script);
 
     return () => {
-      try {
-        window.EJS_emulator?.exit?.();
-      } catch { /* noop */ }
-      window.EJS_emulator = null;
+      // Explicitly cleanup via the store's killer logic
+      const terminate = useEmulatorSession.getState().terminate;
+      terminate();
+
       script.remove();
+      const existing = document.getElementById("ejs-loader");
+      existing?.remove();
+
       if (blobUrlRef.current) {
         URL.revokeObjectURL(blobUrlRef.current);
         blobUrlRef.current = null;

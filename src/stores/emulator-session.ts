@@ -12,36 +12,51 @@ interface SessionState {
 
 function killEmulator() {
   if (typeof window === "undefined") return;
-  const w = window as unknown as {
-    EJS_emulator?: { exit?: () => void; callEvent?: (e: string) => void } | null;
-    EJS_player?: string;
-    EJS_gameUrl?: string;
-    EJS_core?: string;
-    EJS_pathtodata?: string;
-    EJS_gameName?: string;
-    EJS_startOnLoaded?: boolean;
-  };
-  // Stop audio context if EJS exposes one
+  const w = window as any;
+
+  // Stop audio context if EJS exposes one or if there's an Emscripten Module
   try {
-    const emu = w.EJS_emulator as unknown as {
-      exit?: () => void;
-      audioContext?: AudioContext;
-      Module?: { _IOS_PauseAudioContext?: () => void };
-    } | null | undefined;
-    emu?.exit?.();
-    try { void emu?.audioContext?.close(); } catch { /* noop */ }
-  } catch { /* noop */ }
-  // Mute every audio/video element on the page (RetroArch sometimes uses HTMLAudio)
+    const emu = w.EJS_emulator;
+    if (emu) {
+      emu.exit?.();
+      emu.stop?.();
+      emu.destroy?.();
+      if (emu.audioContext) {
+        void emu.audioContext.close();
+      }
+    }
+
+    // Emscripten modules often store audio context in Module.SDL2.audioContext
+    // or similar depending on the version.
+    if (w.Module && w.Module.audioContext) {
+      void w.Module.audioContext.close();
+    }
+  } catch (e) {
+    console.warn("Error during emulator cleanup:", e);
+  }
+
+  // Mute and stop every audio/video element on the page
   try {
     document.querySelectorAll("audio, video").forEach((el) => {
       const m = el as HTMLMediaElement;
-      try { m.pause(); m.muted = true; m.src = ""; m.load(); } catch { /* noop */ }
+      try {
+        m.pause();
+        m.muted = true;
+        m.src = "";
+        m.removeAttribute("src");
+        m.load();
+        m.remove();
+      } catch { /* noop */ }
     });
   } catch { /* noop */ }
+
   // Wipe the canvas/iframe the emulator mounted into
   const host = document.getElementById("emu-game");
-  if (host) host.innerHTML = "";
-  // Clear globals so a fresh launch boots clean
+  if (host) {
+    host.innerHTML = "";
+  }
+
+  // Clear EmulatorJS globals so a fresh launch boots clean
   w.EJS_emulator = null;
   delete w.EJS_player;
   delete w.EJS_gameUrl;
@@ -49,7 +64,20 @@ function killEmulator() {
   delete w.EJS_pathtodata;
   delete w.EJS_gameName;
   delete w.EJS_startOnLoaded;
+  delete w.EJS_onGameStart;
+  delete w.EJS_AdUrl;
+  delete w.EJS_DEBUG_XX;
+
+  // Also clean up potential Emscripten global if it exists
+  if (w.Module) {
+    try {
+      if (w.Module.abort) w.Module.abort();
+    } catch { /* noop */ }
+    w.Module = null;
+  }
 }
+
+export { killEmulator };
 
 export const useEmulatorSession = create<SessionState>((set, get) => ({
   rom: null,
