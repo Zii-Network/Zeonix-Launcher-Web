@@ -140,15 +140,19 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     const onKey = (e: KeyboardEvent) => {
       const sess = useEmulatorSession.getState();
       const emuActive = !!sess.rom && sess.visible;
+
       if (emuActive) {
+        // Always stop propagation when emulator is active to prevent menu actions
+        e.stopImmediatePropagation();
+
         // Esc minimizes; everything else goes to the game.
         if (e.key === "Escape") {
           e.preventDefault();
-          e.stopImmediatePropagation();
           sess.minimize();
         }
         return;
       }
+
       switch (e.key) {
         case "ArrowUp": e.preventDefault(); move("up"); break;
         case "ArrowDown": e.preventDefault(); move("down"); break;
@@ -166,13 +170,24 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined" || !("getGamepads" in navigator)) return;
     let raf = 0;
-    const prev = { up: false, down: false, left: false, right: false, a: false, b: false };
+    const prev = {
+      up: false,
+      down: false,
+      left: false,
+      right: false,
+      a: false,
+      b: false,
+      start: false,
+    };
+
     const tick = () => {
       const sess = useEmulatorSession.getState();
       const emuActive = !!sess.rom && sess.visible;
       const pads = navigator.getGamepads();
+
       for (const pad of pads) {
         if (!pad) continue;
+
         const ax0 = pad.axes[0] ?? 0;
         const ax1 = pad.axes[1] ?? 0;
         const left = pad.buttons[14]?.pressed || ax0 < -0.5;
@@ -182,21 +197,37 @@ export function FocusProvider({ children }: { children: ReactNode }) {
         const a = pad.buttons[0]?.pressed ?? false;
         const b = pad.buttons[1]?.pressed ?? false;
         const start = pad.buttons[9]?.pressed ?? false;
+
         if (emuActive) {
           // Let RetroArch read the gamepad directly. Only Start minimizes.
-          if (start && !prev.a) sess.minimize();
-          prev.left = left; prev.right = right; prev.up = up; prev.down = down;
-          prev.a = start; prev.b = b;
+          if (start && !prev.start) {
+            sess.minimize();
+          }
+          // Update prev state and continue to skip menu logic
+          prev.left = left;
+          prev.right = right;
+          prev.up = up;
+          prev.down = down;
+          prev.a = a;
+          prev.b = b;
+          prev.start = start;
           break;
         }
+
         if (left && !prev.left) move("left");
         if (right && !prev.right) move("right");
         if (up && !prev.up) move("up");
         if (down && !prev.down) move("down");
         if (a && !prev.a) select();
         if (b && !prev.b) back();
-        prev.left = left; prev.right = right; prev.up = up; prev.down = down;
-        prev.a = a; prev.b = b;
+
+        prev.left = left;
+        prev.right = right;
+        prev.up = up;
+        prev.down = down;
+        prev.a = a;
+        prev.b = b;
+        prev.start = start;
         break;
       }
       raf = requestAnimationFrame(tick);
