@@ -53,6 +53,18 @@ function killEmulator() {
   // Wipe the canvas/iframe the emulator mounted into
   const host = document.getElementById("emu-game");
   if (host) {
+    const iframes = Array.from(host.getElementsByTagName("iframe"));
+    for (const iframe of iframes) {
+      try {
+        iframe.src = "about:blank";
+        iframe.contentWindow?.document.open();
+        iframe.contentWindow?.document.write("");
+        iframe.contentWindow?.document.close();
+        iframe.remove();
+      } catch (e) {
+        console.warn("Error cleaning up emulator iframe:", e);
+      }
+    }
     host.innerHTML = "";
   }
 
