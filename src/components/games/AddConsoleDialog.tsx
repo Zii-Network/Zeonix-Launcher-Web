@@ -121,19 +121,19 @@ export function AddConsoleDialog({
                       key={p}
                       type="button"
                       onClick={() => setPlatform(p)}
-                      className="group relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl bg-foreground/5 p-4 transition-all hover:bg-foreground/10 hover:scale-[1.02] active:scale-[0.98]"
+                      className="group relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl bg-foreground/[0.03] p-4 border border-foreground/5 transition-all hover:bg-foreground/[0.06] hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <div
-                        className="flex h-14 w-14 items-center justify-center rounded-2xl text-3xl shadow-sm transition-transform group-hover:scale-110"
+                        className="flex h-16 w-16 items-center justify-center rounded-2xl text-4xl shadow-sm transition-transform group-hover:scale-110 group-hover:-rotate-3"
                         style={{ background: preset.accent }}
                       >
-                        {preset.emoji}
+                        <span className="drop-shadow-md">{preset.emoji}</span>
                       </div>
                       <div className="text-center">
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
                           {p}
                         </div>
-                        <div className="mt-0.5 text-xs font-semibold text-foreground/90 truncate max-w-[120px]">
+                        <div className="mt-0.5 text-xs font-bold text-foreground/80 truncate max-w-[140px]">
                           {preset.name}
                         </div>
                       </div>
